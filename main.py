@@ -10,32 +10,35 @@ def main():
     gl.auth()
 
     gh = github.Github(gh_token)
+    gh_user_name = get_gh_user_name()
 
-    gh_user_name = get_details()
+    slug = get_slug()
+    project = create_project(gl, gh, slug)
 
-    gl_project_details = create_project(gl, gh)
+    mirror(project, gh_user_name, slug, gh_token)
 
-    mirror(gl_project_details[0], gh_user_name, gl_project_details[1], gh_token)
-
-def create_project(gl, gh):
-    slug = input("Enter slug: ")
-
+def create_project(gl, gh, slug):
     project = gl.projects.create({'name': slug, 'visibility':'public'})
 
     user = gh.get_user()
-    repo = user.create_repo(slug)
-    return (project, slug)
+    user.create_repo(slug)
+
+    return project
 
 def mirror(project, gh_user_name, slug, token):
     gh_url = "https://" + token + "@github.com/" + gh_user_name + "/" + slug
 
-    mirror = project.remote_mirrors.create({'url': gh_url,
+    project.remote_mirrors.create({'url': gh_url,
                                         'enabled': True})
 
-def get_details():
+def get_gh_user_name():
     gh_user_name = input("Enter Github username: ")
 
     return gh_user_name 
 
+def get_slug():
+    slug = input("Enter slug of new project: ")
+    
+    return slug
+
 main()
- 
